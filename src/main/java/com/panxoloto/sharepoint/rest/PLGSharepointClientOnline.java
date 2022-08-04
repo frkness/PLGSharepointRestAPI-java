@@ -1,10 +1,8 @@
 package com.panxoloto.sharepoint.rest;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-
+import com.panxoloto.sharepoint.rest.helper.AuthTokenHelperOnline;
+import com.panxoloto.sharepoint.rest.helper.HeadersHelper;
+import com.panxoloto.sharepoint.rest.helper.Permission;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -22,9 +20,10 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.panxoloto.sharepoint.rest.helper.AuthTokenHelperOnline;
-import com.panxoloto.sharepoint.rest.helper.HeadersHelper;
-import com.panxoloto.sharepoint.rest.helper.Permission;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 public class PLGSharepointClientOnline implements PLGSharepointClient {
 
@@ -92,6 +91,46 @@ public class PLGSharepointClientOnline implements PLGSharepointClient {
 	@Override
 	public void refreshToken() throws Exception {
 		this.tokenHelper.init();
+	}
+
+	public RestTemplate getRestTemplate() {
+		return restTemplate;
+	}
+
+	/**
+	 * Method to get json string which you can transform to a JSONObject and get data from it.
+	 *
+	 *
+	 * @param data - Data to be sent as query (look at the rest api documentation on how to include search filters).
+	 * @return.- String representing a json object if the auth is correct.
+	 * @throws Exception
+	 */
+	public JSONObject performGenericGet(String apiPath, String data, String query) throws Exception {
+		LOG.debug("getGenericObject {}", data);
+		headers = headerHelper.getGetHeaders(false);
+
+		RequestEntity<String> requestEntity = new RequestEntity<>(data,
+				headers, HttpMethod.GET,
+				this.tokenHelper.getSharepointSiteUrlWithQuery(apiPath, query)
+		);
+
+		ResponseEntity<String> responseEntity =
+				restTemplate.exchange(requestEntity, String.class);
+
+		return new JSONObject(responseEntity.getBody());
+	}
+
+	public JSONObject performGenericPost(String apiPath, String payloadStr, String query) throws Exception {
+		LOG.debug("performGenericPost siteUrl {} payload {}", apiPath);
+
+		headers = headerHelper.getUpdateHeaders(payloadStr);
+
+		RequestEntity<String> requestEntity = new RequestEntity<>(payloadStr,
+				headers, HttpMethod.POST,
+				this.tokenHelper.getSharepointSiteUrlWithQuery(apiPath, query)
+		);
+		ResponseEntity<String> responseEntity =  restTemplate.exchange(requestEntity, String.class);
+		return new JSONObject(responseEntity.getBody());
 	}
 	
 	/**

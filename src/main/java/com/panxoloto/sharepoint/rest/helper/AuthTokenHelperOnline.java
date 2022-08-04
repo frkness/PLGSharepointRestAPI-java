@@ -1,15 +1,5 @@
 package com.panxoloto.sharepoint.rest.helper;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import javax.xml.transform.TransformerException;
-
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONException;
@@ -24,6 +14,15 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import javax.xml.transform.TransformerException;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class AuthTokenHelperOnline {
 
@@ -223,11 +222,26 @@ public class AuthTokenHelperOnline {
 	 * @throws URISyntaxException 
 	 */
 	public URI getSharepointSiteUrl(String apiPath) throws URISyntaxException {
+		if (apiPath.startsWith("http")) {
+			return new URI(apiPath);
+		}
 		return new URI("https",
 				this.domain,
 				this.spSiteUri + apiPath,
 				null
 				);
+	}
+
+	public URI getSharepointSiteUrlWithQuery(String apiPath, String query) throws URISyntaxException {
+		if (apiPath.startsWith("http")) {
+			return new URI(apiPath);
+		}
+		return new URI("https",
+				this.domain,
+				this.spSiteUri + apiPath,
+				query,
+				null
+		);
 	}
 	
 	/**
